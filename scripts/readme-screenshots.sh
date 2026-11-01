@@ -34,6 +34,11 @@ for shot in "${shots[@]}"; do
         echo "no $tour screenshot in $artifact" >&2
         exit 1
     fi
+    # The manifest names a file inside the artifact, nothing elsewhere.
+    if [[ $file == */* || $file == .* || -L $artifact/$file || ! -f $artifact/$file ]]; then
+        echo "unexpected screenshot file name in $artifact/manifest.json: $file" >&2
+        exit 1
+    fi
     magick "$artifact/$file" -resize 600x -strip "$work/plain.png"
     read -r width height < <(magick identify -format '%w %h\n' "$work/plain.png")
     radius=84 # The iPhone 17 Pro's corner radius at this width.
