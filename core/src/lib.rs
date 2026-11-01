@@ -306,6 +306,10 @@ pub trait CoreListener: Send + Sync {
 pub struct CoreClient {
     client: GrindrClient,
     listener_tasks: Mutex<Vec<JoinHandle<()>>>,
+    /// Held by transport resets and sign-outs. `reset_transport` reads the
+    /// device and writes a rebuilt fingerprint later, so a rotation in between
+    /// would be undone and the old account's device identity restored.
+    transport_change: Arc<tokio::sync::Mutex<()>>,
 }
 
 impl Drop for CoreClient {
@@ -344,6 +348,7 @@ impl CoreClient {
         Ok(Arc::new(Self {
             client,
             listener_tasks: Mutex::new(Vec::new()),
+            transport_change: Arc::default(),
         }))
     }
 
@@ -433,7 +438,9 @@ impl CoreClient {
             .map(|json| parse_json::<DeviceInfo>("device", &json))
             .transpose()?;
         let client = self.client.clone();
+        let transport_change = self.transport_change.clone();
         on_runtime(async move {
+            let _guard = transport_change.lock().await;
             match device {
                 Some(device) => {
                     client.sign_out_rotating(device).await?;
@@ -522,7 +529,11 @@ impl CoreClient {
         self.client.set_active(active);
         if resuming {
             let client = self.client.clone();
-            RUNTIME.spawn(async move { client.reset_transport().await.ok() });
+            let transport_change = self.transport_change.clone();
+            RUNTIME.spawn(async move {
+                let _guard = transport_change.lock().await;
+                client.reset_transport().await.ok()
+            });
         }
     }
 }
