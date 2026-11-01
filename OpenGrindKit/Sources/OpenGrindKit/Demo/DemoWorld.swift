@@ -49,6 +49,8 @@ actor DemoWorld {
     private var nextMediaID = 1
     /// Uploaded photos by their hash, for profile photos and chat photos alike.
     private var uploadedPhotos: [String: Data] = [:]
+    private let uploadPrefix =
+        "ffffffff" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased().prefix(24)
     private let now: Date
 
     init(now: Date = .now) {
@@ -341,19 +343,20 @@ actor DemoWorld {
     func upload(_ data: Data) -> (mediaID: Int, url: URL, hash: String) {
         let mediaID = nextMediaID
         nextMediaID += 1
-        let hash = Self.uploadHash(mediaID)
+        let hash = uploadHash(mediaID)
         uploadedPhotos[hash] = data
         return (mediaID, MediaURL.profileImage(hash, size: .full), hash)
     }
 
     private func uploadURL(_ mediaID: Int) -> URL? {
-        let hash = Self.uploadHash(mediaID)
+        let hash = uploadHash(mediaID)
         return uploadedPhotos[hash] == nil ? nil : MediaURL.profileImage(hash, size: .full)
     }
 
-    /// Uploads get made-up hashes that can't clash with the generated ones.
-    private static func uploadHash(_ mediaID: Int) -> String {
-        String(repeating: "f", count: 32) + String(format: "%08x", mediaID)
+    /// Uploads get made-up hashes that can't clash with the generated ones, nor
+    /// with an earlier demo's uploads, which the image cache may still hold.
+    private func uploadHash(_ mediaID: Int) -> String {
+        uploadPrefix + String(format: "%08x", mediaID)
     }
 
     // MARK: Generation
