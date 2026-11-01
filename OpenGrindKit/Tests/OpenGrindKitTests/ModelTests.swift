@@ -311,6 +311,26 @@ struct ModelTests {
         #expect(account.signedOutReason == nil)
     }
 
+    @Test func anEndedSessionCannotSendAsTheNextAccount() async throws {
+        let transport = FakeTransport()
+        transport.signInResult = SignInResult(profileID: 77)
+        let account = AccountController(
+            transport: transport, credentials: InMemoryCredentialStore(),
+            location: FixedLocation(geohash: "u33dc0cppvbz"))
+        try await account.signIn(email: "ada@example.com", password: "secret")
+        let chat = try #require(account.session).chat(with: 5)
+
+        await account.signOut()
+        transport.signInResult = SignInResult(profileID: 88)
+        try await account.signIn(email: "bob@example.com", password: "secret")
+        let before = transport.requests.count
+        // A photo picked before the sign-out finishes encoding now.
+        await chat.sendPhoto(Data([0xFF, 0xD8]))
+
+        #expect(transport.requests.count == before)
+        #expect(chat.items.last?.delivery == .failed)
+    }
+
     @Test func signingInDoesNotWaitLongForALocation() async throws {
         struct NoFix: LocationProviding {
             func currentGeohash() async throws -> String {

@@ -50,6 +50,7 @@ public final class AccountSession {
     }
 
     func stop() {
+        api.revoke()
         chats.removeAll()
     }
 

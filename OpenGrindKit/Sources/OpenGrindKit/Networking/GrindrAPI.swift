@@ -6,9 +6,18 @@ import Foundation
 /// (https://opengrind.org/grindr-api/).
 public struct GrindrAPI: Sendable {
     public let transport: any GrindrTransport
+    /// Shared by every copy, so revoking one API revokes the models' copies too.
+    private let revocation = Revocation()
 
     public init(transport: any GrindrTransport) {
         self.transport = transport
+    }
+
+    /// Fails every later request with ``GrindrError/notSignedIn``. The transport is
+    /// shared by all accounts: work an ended session started, such as a photo still
+    /// being prepared, must not send as the account that signs in next.
+    func revoke() {
+        revocation.revoke()
     }
 
     // MARK: Browse
@@ -268,6 +277,7 @@ public struct GrindrAPI: Sendable {
 
     @discardableResult
     func perform(_ request: APIRequest) async throws -> APIResponse {
+        guard !revocation.isRevoked else { throw GrindrError.notSignedIn }
         let response = try await transport.send(request)
         guard response.isSuccess else { throw GrindrError.from(response) }
         return response
@@ -280,6 +290,17 @@ public struct GrindrAPI: Sendable {
         } catch {
             throw GrindrError.invalidResponse("\(request.method.rawValue) \(request.path): \(error)")
         }
+    }
+}
+
+private final class Revocation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var revoked = false
+
+    var isRevoked: Bool { lock.withLock { revoked } }
+
+    func revoke() {
+        lock.withLock { revoked = true }
     }
 }
 
