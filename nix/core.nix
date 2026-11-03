@@ -49,7 +49,7 @@ rustPlatform.buildRustPackage {
 
   meta = {
     description = "UniFFI bridge between the Open Grind iOS app and the grindr transport";
-    homepage = "https://github.com/slopinger/open-grind-ios";
+    homepage = "https://github.com/slopmaxxer/open-grind-ios";
     license = lib.licenses.mit;
     mainProgram = "uniffi-bindgen";
   };

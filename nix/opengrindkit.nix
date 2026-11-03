@@ -51,7 +51,7 @@ stdenv.mkDerivation {
 
   meta = {
     description = "Models, API client and state for Open Grind on iOS";
-    homepage = "https://github.com/slopinger/open-grind-ios";
+    homepage = "https://github.com/slopmaxxer/open-grind-ios";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };

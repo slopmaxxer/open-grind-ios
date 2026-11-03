@@ -2,7 +2,7 @@
 
 Native SwiftUI iOS port of Open Grind, the unofficial open source Grindr client
 (upstream: https://git.opengrind.org/open-grind/open-grind, mirror github.com/VityaSchel/open-grind,
-MIT; artwork CC0). Public at https://github.com/slopinger/open-grind-ios. Not deployed anywhere:
+MIT; artwork CC0). Public at https://github.com/slopmaxxer/open-grind-ios. Not deployed anywhere:
 it is an iOS app, built and tested on GitHub Actions (macOS runner).
 
 ## Layout

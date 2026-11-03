@@ -44,7 +44,7 @@ struct AboutView: View {
             }
 
             Section {
-                Link(destination: URL(string: "https://github.com/slopinger/open-grind-ios")!) {
+                Link(destination: URL(string: "https://github.com/slopmaxxer/open-grind-ios")!) {
                     Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
                 Link(destination: URL(string: "https://git.opengrind.org/open-grind/open-grind")!) {
